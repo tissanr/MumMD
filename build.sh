@@ -1,5 +1,7 @@
 #!/bin/bash
 # Baut MDView.app nur mit swiftc und installiert es nach ~/Applications (oder $DEST).
+#   MARKED_JS=<pfad>  vorhandene marked.min.js nutzen statt sie zu laden (z. B. für Homebrew, ohne Netz)
+#   NO_INSTALL=1      nur nach build/MDView.app bauen, nichts installieren
 set -euo pipefail
 cd "$(dirname "$0")"
 
@@ -11,7 +13,8 @@ DEST="${DEST:-$HOME/Applications}"
 
 BUILD=build
 APP="$BUILD/$APP_NAME.app"
-MARKED="$BUILD/vendor/marked-$MARKED_VERSION.min.js"
+MARKED="${MARKED_JS:-$BUILD/vendor/marked-$MARKED_VERSION.min.js}"
+mkdir -p "$BUILD"
 
 # marked.js einmalig laden (gecacht in build/vendor) und Prüfsumme verifizieren.
 if [[ ! -f "$MARKED" ]]; then
@@ -20,7 +23,7 @@ if [[ ! -f "$MARKED" ]]; then
     curl -fsSL "https://cdn.jsdelivr.net/npm/marked@$MARKED_VERSION/marked.min.js" -o "$MARKED.tmp"
     mv "$MARKED.tmp" "$MARKED"
 fi
-echo "$MARKED_SHA256  $MARKED" | shasum -a 256 -c --quiet - || { rm -f "$MARKED"; echo "Prüfsumme falsch" >&2; exit 1; }
+echo "$MARKED_SHA256  $MARKED" | shasum -a 256 -c --quiet - || { echo "Prüfsumme von $MARKED falsch" >&2; [[ -z "${MARKED_JS:-}" ]] && rm -f "$MARKED"; exit 1; }
 
 # App-Icon aus icon.svg erzeugen (nur wenn sich das SVG geändert hat).
 ICNS="$BUILD/AppIcon.icns"
@@ -67,6 +70,11 @@ cp template.html style.css "$APP/Contents/Resources/"
 cp "$MARKED" "$APP/Contents/Resources/marked.min.js"
 cp "$ICNS" "$APP/Contents/Resources/AppIcon.icns"
 codesign --force --sign - "$APP" >/dev/null
+
+if [[ "${NO_INSTALL:-}" == 1 ]]; then
+    echo "✓ $APP"
+    exit 0
+fi
 
 echo "→ Installiere nach $DEST"
 mkdir -p "$DEST"
