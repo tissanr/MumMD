@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <!-- MDView App-Icon (Variante A: Seite mit M↓). build.sh erzeugt daraus AppIcon.icns. -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0A3A66"/>
+      <stop offset="1" stop-color="#00274C"/>
+    </linearGradient>
+  </defs>
+  <rect x="100" y="100" width="824" height="824" rx="185" fill="url(#bg)"/>
+  <path d="M316 196H628L748 316V800A32 32 0 0 1 716 832H316A32 32 0 0 1 284 800V228A32 32 0 0 1 316 196Z" fill="#FFFFFF"/>
+  <path d="M628 196V284A32 32 0 0 0 660 316H748Z" fill="#BFEFF2"/>
+  <rect x="344" y="296" width="200" height="40" rx="20" fill="#00D2D2"/>
+  <rect x="344" y="376" width="340" height="24" rx="12" fill="#D5DCE4"/>
+  <rect x="344" y="428" width="300" height="24" rx="12" fill="#D5DCE4"/>
+  <rect x="344" y="480" width="320" height="24" rx="12" fill="#D5DCE4"/>
+  <polyline points="356,756 356,604 424,672 492,604 492,756" fill="none" stroke="#00274C" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M620 604V752M566 700L620 754L674 700" fill="none" stroke="#0072BC" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

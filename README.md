@@ -11,6 +11,8 @@ Minimaler, schnell startender Markdown-Viewer für macOS (Swift, AppKit, WKWebVi
 - ⌘R neu laden · ⌘+ / ⌘− / ⌘0 Schriftgröße · ⌘W schließen · ⌘Q beenden
 - Zur Laufzeit keine Netzwerkzugriffe (CSP); externe Links öffnen im Standardbrowser
 
+App-Icon: `icon.svg` (Entwurf A); `build.sh` erzeugt daraus `AppIcon.icns`.
+
 Tests: `MDVIEW_DEBUG=1` gibt Render-Ereignisse auf stderr aus, `MDVIEW_DEBUG_SNAPSHOT=<ordner>` speichert
 nach jedem Rendern ein PNG, `MDVIEW_DEBUG_SCROLL=<px>` scrollt nach dem ersten Rendern, `MDVIEW_DEBUG_APPEARANCE=dark|light` erzwingt ein Erscheinungsbild
 (z. B. `open -a MDView --env MDVIEW_DEBUG=1 --stderr log.txt datei.md`).

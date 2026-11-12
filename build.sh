@@ -22,6 +22,38 @@ if [[ ! -f "$MARKED" ]]; then
 fi
 echo "$MARKED_SHA256  $MARKED" | shasum -a 256 -c --quiet - || { rm -f "$MARKED"; echo "Prüfsumme falsch" >&2; exit 1; }
 
+# App-Icon aus icon.svg erzeugen (nur wenn sich das SVG geändert hat).
+ICNS="$BUILD/AppIcon.icns"
+if [[ ! -f "$ICNS" || icon.svg -nt "$ICNS" ]]; then
+    echo "→ Erzeuge App-Icon"
+    cat > "$BUILD/render-icon.swift" <<'SWIFT'
+import AppKit
+// render-icon <svg> <iconset-ordner>: rastert das SVG in alle .iconset-Größen.
+let args = CommandLine.arguments
+guard let image = NSImage(contentsOfFile: args[1]) else { fatalError("SVG nicht lesbar") }
+for base in [16, 32, 128, 256, 512] {
+    for scale in [1, 2] {
+        let px = base * scale
+        let rep = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: px, pixelsHigh: px,
+            bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
+            colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0)!
+        NSGraphicsContext.saveGraphicsState()
+        NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: rep)
+        NSGraphicsContext.current?.imageInterpolation = .high
+        image.draw(in: NSRect(x: 0, y: 0, width: px, height: px))
+        NSGraphicsContext.restoreGraphicsState()
+        let name = "icon_\(base)x\(base)\(scale == 2 ? "@2x" : "").png"
+        try! rep.representation(using: .png, properties: [:])!
+            .write(to: URL(fileURLWithPath: args[2]).appendingPathComponent(name))
+    }
+}
+SWIFT
+    swiftc -O "$BUILD/render-icon.swift" -o "$BUILD/render-icon"
+    rm -rf "$BUILD/AppIcon.iconset" && mkdir -p "$BUILD/AppIcon.iconset"
+    "$BUILD/render-icon" icon.svg "$BUILD/AppIcon.iconset"
+    iconutil -c icns "$BUILD/AppIcon.iconset" -o "$ICNS"
+fi
+
 echo "→ Kompiliere"
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
@@ -33,6 +65,7 @@ swiftc -O -swift-version 5 \
 cp Info.plist "$APP/Contents/Info.plist"
 cp template.html style.css "$APP/Contents/Resources/"
 cp "$MARKED" "$APP/Contents/Resources/marked.min.js"
+cp "$ICNS" "$APP/Contents/Resources/AppIcon.icns"
 codesign --force --sign - "$APP" >/dev/null
 
 echo "→ Installiere nach $DEST"
