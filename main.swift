@@ -422,14 +422,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             .separator(),
             item("Schließen", #selector(NSWindow.performClose(_:)), "w"),
         ])
-        let find = #selector(NSResponder.performTextFinderAction(_:))
         _ = submenu("Bearbeiten", [
             item("Kopieren", #selector(NSText.copy(_:)), "c"),
             item("Alles auswählen", #selector(NSText.selectAll(_:)), "a"),
-            .separator(),
-            item("Suchen …", find, "f", tag: NSTextFinder.Action.showFindInterface.rawValue),
-            item("Weitersuchen", find, "g", tag: NSTextFinder.Action.nextMatch.rawValue),
-            item("Rückwärts suchen", find, "g", [.command, .shift], tag: NSTextFinder.Action.previousMatch.rawValue),
         ])
         let biggerAlt = item("Größer", #selector(increaseFontSize(_:)), "=")
         biggerAlt.isHidden = true

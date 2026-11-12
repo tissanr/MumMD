@@ -91,7 +91,31 @@ li > p { margin-top: 16px; }
 li:has(> input[type="checkbox"]),
 li:has(> p > input[type="checkbox"]) { list-style: none; }
 li > input[type="checkbox"],
-li > p > input[type="checkbox"] { margin: 0 .2em .25em -1.4em; vertical-align: middle; }
+li > p > input[type="checkbox"] {
+  appearance: none;
+  display: inline-grid;
+  place-content: center;
+  box-sizing: border-box;
+  width: 1em;
+  height: 1em;
+  margin: 0 .35em .2em -1.4em;
+  vertical-align: middle;
+  background: var(--bg);
+  border: 1px solid var(--fg-muted);
+  border-radius: 4px;
+}
+li > input[type="checkbox"]:checked,
+li > p > input[type="checkbox"]:checked { background: var(--link); border-color: var(--link); }
+li > input[type="checkbox"]:checked::before,
+li > p > input[type="checkbox"]:checked::before {
+  content: "";
+  width: .5em;
+  height: .25em;
+  margin-top: -.12em;
+  border-left: 2px solid #fff;
+  border-bottom: 2px solid #fff;
+  transform: rotate(-45deg);
+}
 
 code, kbd, pre, samp {
   font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
