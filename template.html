@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<!-- Kein Netzwerk, keine Skripte aus dem Markdown: nur unsere eigenen (nonce) dürfen laufen. -->
+<meta http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'nonce-mdview'; style-src 'unsafe-inline' file:; img-src file: data:; media-src file:; font-src file: data:; form-action 'none'">
+<meta name="color-scheme" content="light dark">
+<link rel="stylesheet" href="style.css">
+<script nonce="mdview" src="marked.min.js"></script>
+<base>
+</head>
+<body>
+<article id="content" class="markdown-body"></article>
+<script nonce="mdview">
+(() => {
+  const content = document.getElementById('content');
+  const base = document.querySelector('base');
+
+  marked.use({ gfm: true, breaks: false });
+
+  const stripFrontMatter = md => md.replace(/^﻿?---\r?\n[\s\S]*?\r?\n(---|\.\.\.)\r?\n/, '');
+
+  // GitHub-artige Anker-IDs für Überschriften (#mein-abschnitt)
+  function addHeadingIds(root) {
+    const seen = new Map();
+    for (const h of root.querySelectorAll('h1,h2,h3,h4,h5,h6')) {
+      let slug = h.textContent.trim().toLowerCase()
+        .replace(/[^\p{L}\p{N}\s_-]/gu, '').replace(/\s/g, '-');
+      const n = seen.get(slug) || 0;
+      seen.set(slug, n + 1);
+      if (n) slug += '-' + n;
+      h.id = slug;
+    }
+  }
+
+  // Nur geänderte Top-Level-Knoten austauschen: Scrollposition und geladene Bilder bleiben erhalten.
+  function patch(container, fragment) {
+    const next = [...fragment.childNodes];
+    const prev = [...container.childNodes];
+    let start = 0;
+    while (start < prev.length && start < next.length && prev[start].isEqualNode(next[start])) start++;
+    let endPrev = prev.length - 1, endNext = next.length - 1;
+    while (endPrev >= start && endNext >= start && prev[endPrev].isEqualNode(next[endNext])) { endPrev--; endNext--; }
+    const ref = prev[endPrev + 1] || null;
+    for (let i = start; i <= endPrev; i++) prev[i].remove();
+    for (let i = start; i <= endNext; i++) container.insertBefore(next[i], ref);
+    return { changed: (endPrev - start + 1) + (endNext - start + 1) };
+  }
+
+  window.setFontSize = px => document.documentElement.style.setProperty('--font-size', px + 'px');
+
+  window.render = (md, baseURL, fontSize) => {
+    if (fontSize) setFontSize(fontSize);
+    base.href = baseURL;
+    const y = window.scrollY;
+    const tpl = document.createElement('template');
+    tpl.innerHTML = marked.parse(stripFrontMatter(md));
+    addHeadingIds(tpl.content);
+    const { changed } = patch(content, tpl.content);
+    window.scrollTo(0, y);
+    return { changed, scrollY: Math.round(window.scrollY), text: content.innerText.slice(0, 80) };
+  };
+
+  // In-Page-Anker selbst behandeln (mit <base> würden sie sonst zum Ordner navigieren).
+  document.addEventListener('click', e => {
+    const a = e.target.closest('a[href^="#"]');
+    if (!a) return;
+    e.preventDefault();
+    const id = decodeURIComponent(a.getAttribute('href').slice(1));
+    const el = document.getElementById(id) || document.getElementsByName(id)[0];
+    if (el) el.scrollIntoView();
+  });
+})();
+</script>
+</body>
+</html>
