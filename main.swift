@@ -341,7 +341,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         return true
     }
 
-    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { true }
+    // Nicht AppKit entscheiden lassen: Das schließende Öffnen-Fenster wäre sonst das „letzte Fenster“,
+    // während das neue Dokumentfenster noch unsichtbar aufs erste Rendern wartet – die App würde beendet.
+    // Stattdessen beenden, wenn das letzte Dokument geschlossen wird (windowClosed / showOpenPanel).
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { false }
     func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool { true }
 
     // MARK: Dokumente
@@ -363,6 +366,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func windowClosed(_ controller: DocumentWindowController) {
         controllers.removeAll { $0 === controller }
+        if controllers.isEmpty { NSApp.terminate(nil) }
     }
 
     @objc func showOpenPanel(_ sender: Any?) {
@@ -371,7 +375,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         panel.canChooseDirectories = false
         panel.allowedContentTypes = [UTType("net.daringfireball.markdown"), .plainText].compactMap { $0 }
         NSApp.activate(ignoringOtherApps: true)
-        if panel.runModal() == .OK { open(panel.urls) }
+        if panel.runModal() == .OK {
+            open(panel.urls)
+        } else if controllers.isEmpty {
+            NSApp.terminate(nil)  // abgebrochen und kein Dokument offen: wie bisher beenden
+        }
     }
 
     // MARK: Schriftgröße (gilt für alle Fenster, wird gespeichert)
