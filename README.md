@@ -24,7 +24,7 @@ zunehmend auch das, was KI-Agenten wie Claude Code schreiben. Zum **Lesen** sind
 
 - **Editoren** (VS Code, Typora, …) sind zum Schreiben gebaut, starten langsam und
   zeigen oft Quelltext statt fertiger Seite.
-- **Quick Look** zeigt nur Rohtext.
+- **Quick Look** zeigt von Haus aus nur Rohtext.
 - **Browser-Erweiterungen und Electron-Apps** sind schwergewichtig und laden gern
   etwas aus dem Netz nach.
 
@@ -46,6 +46,7 @@ Die Scrollposition bleibt dabei stehen.
 - **Relative Links und Bilder** funktionieren (relativ zum Ordner der Datei);
   verlinkte `.md`-Dateien öffnen in MDView, Webseiten im Standardbrowser.
 - **Offline & sicher:** keine Netzwerkzugriffe, Skripte aus Markdown-Dateien werden nicht ausgeführt.
+- **Quick Look:** Leertaste im Finder zeigt `.md`-Dateien gerendert, im selben Stil wie die App.
 - **Überall öffnen:** Doppelklick im Finder, „Öffnen mit“, Drag & Drop aufs Dock-Icon
   oder Fenster, `open -a MDView datei.md`, ⌘O.
 
@@ -66,11 +67,12 @@ brew install tissanr/tap/mdview
 
 Homebrew baut MDView dabei aus dem Quellcode. Danach im Terminal `mdview datei.md`.
 Beim ersten Aufruf verlinkt `mdview` die App automatisch nach `~/Applications`, damit sie
-auch im Finder, in Spotlight und bei „Öffnen mit“ erscheint. Wer das sofort möchte, ruft
-einmal `mdview` ohne Datei auf.
+auch im Finder, in Spotlight und bei „Öffnen mit“ erscheint, und die App meldet ihre
+Quick-Look-Vorschau bei macOS an. Wer das sofort möchte, ruft einmal `mdview` ohne Datei auf.
 
-(Während `brew install` selbst geht das nicht: Homebrew installiert in einer Sandbox,
-die keine Schreibzugriffe ins Home-Verzeichnis erlaubt.)
+(Während `brew install` selbst geht beides nicht: Homebrew installiert in einer Sandbox,
+die weder Schreibzugriffe ins Home-Verzeichnis noch Zugriff auf die Systemdienste für
+App- und Erweiterungs-Registrierung erlaubt.)
 
 Falls Homebrew nach Vertrauen für das Tap fragt: `brew trust --tap tissanr/tap`.
 
@@ -116,6 +118,7 @@ Das ganze Projekt besteht aus wenigen Dateien:
 | Datei           | Zweck |
 |-----------------|-------|
 | `main.swift`    | Die App: Fenster, Menüs, Dateiüberwachung, Öffnen per Finder/Dock/Drag & Drop |
+| `quicklook/`    | Quick-Look-Erweiterung: rendert Markdown mit marked.js/highlight.js in JavaScriptCore zu statischem HTML |
 | `template.html` | Die Seite im Fenster; rendert Markdown mit marked.js, färbt Codeblöcke mit highlight.js und tauscht Inhalte aus |
 | `style.css`     | GitHub-ähnliches Layout, Hell/Dunkel, max. 900 px Textbreite |
 | `Info.plist`    | App-Beschreibung; meldet MDView bei macOS als Viewer für `.md`/`.markdown` an |
@@ -129,6 +132,10 @@ Ein paar Details:
   ~100 ms entprellt, damit pro Speichervorgang genau einmal neu gerendert wird.
 - **Neuladen ohne Springen:** Das neue HTML wird mit dem alten verglichen; nur geänderte
   Blöcke werden ersetzt. Bereits geladene Bilder bleiben, die Seite springt nicht.
+- **Quick Look** führt in Vorschauen kein JavaScript aus. Die Erweiterung rendert deshalb
+  selbst (JavaScriptCore) und liefert fertiges HTML mit `style.css`. Bilder werden in der
+  Vorschau nicht angezeigt. Beim Start meldet die App die Erweiterung per `pluginkit` an,
+  falls sie noch nicht (oder unter einem anderen Pfad) registriert ist.
 - **Sicherheit:** Eine Content-Security-Policy sperrt Netzwerkzugriffe und Skripte aus
   dem Dokument. Links ins Web öffnen im Standardbrowser, nicht in der App.
 

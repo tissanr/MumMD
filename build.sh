@@ -83,6 +83,23 @@ cp template.html style.css "$APP/Contents/Resources/"
 cp "$MARKED" "$APP/Contents/Resources/marked.min.js"
 cp "$HLJS" "$APP/Contents/Resources/highlight.min.js"
 cp "$ICNS" "$APP/Contents/Resources/AppIcon.icns"
+
+# Quick-Look-Erweiterung (Vorschau mit Leertaste im Finder), eingebettet in die App.
+echo "→ Kompiliere Quick-Look-Erweiterung"
+APPEX="$APP/Contents/PlugIns/MDViewQuickLook.appex"
+mkdir -p "$APPEX/Contents/MacOS" "$APPEX/Contents/Resources"
+swiftc -O -swift-version 5 -application-extension \
+    -target "$(uname -m)-apple-macos$MIN_MACOS" \
+    -module-name MDViewQuickLook \
+    -framework QuickLookUI -framework JavaScriptCore \
+    -Xlinker -e -Xlinker _NSExtensionMain \
+    quicklook/PreviewProvider.swift -o "$APPEX/Contents/MacOS/MDViewQuickLook"
+cp quicklook/Info.plist "$APPEX/Contents/Info.plist"
+cp style.css "$APPEX/Contents/Resources/"
+cp "$MARKED" "$APPEX/Contents/Resources/marked.min.js"
+cp "$HLJS" "$APPEX/Contents/Resources/highlight.min.js"
+codesign --force --sign - --entitlements quicklook/QuickLook.entitlements "$APPEX" >/dev/null
+
 codesign --force --sign - "$APP" >/dev/null
 
 if [[ "${NO_INSTALL:-}" == 1 ]]; then
@@ -95,6 +112,9 @@ mkdir -p "$DEST"
 rm -rf "${DEST:?}/$APP_NAME.app"
 ditto "$APP" "$DEST/$APP_NAME.app"
 /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister \
-    -f "$DEST/$APP_NAME.app"
+    -f -R "$DEST/$APP_NAME.app"
+# Quick-Look-Erweiterung sofort anmelden (sonst erst nach dem ersten App-Start).
+pluginkit -a "$DEST/$APP_NAME.app/Contents/PlugIns/MDViewQuickLook.appex" || true
+qlmanage -r >/dev/null 2>&1 || true
 
 echo "✓ $DEST/$APP_NAME.app"

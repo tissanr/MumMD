@@ -299,6 +299,36 @@ final class DocumentWindowController: NSWindowController, NSWindowDelegate, WKNa
 
 // MARK: - App
 
+// Meldet die eingebettete Quick-Look-Erweiterung bei macOS an, falls das noch nicht (oder für einen
+// anderen Pfad, z. B. eine ältere Homebrew-Version) geschehen ist. Nötig, weil weder Homebrew
+// (Sandbox) noch ein Start aus einem Ordner außerhalb von /Applications das zuverlässig erledigt.
+func registerQuickLookExtension() {
+    let appex = Bundle.main.builtInPlugInsURL?.appendingPathComponent("MDViewQuickLook.appex")
+    guard let appex, FileManager.default.fileExists(atPath: appex.path) else { return }
+
+    func run(_ tool: String, _ args: [String]) -> String {
+        let p = Process()
+        p.executableURL = URL(fileURLWithPath: tool)
+        p.arguments = args
+        let pipe = Pipe()
+        p.standardOutput = pipe
+        p.standardError = FileHandle.nullDevice
+        guard (try? p.run()) != nil else { return "" }
+        let out = pipe.fileHandleForReading.readDataToEndOfFile()
+        p.waitUntilExit()
+        return String(decoding: out, as: UTF8.self)
+    }
+
+    let path = appex.resolvingSymlinksInPath().path
+    let listed = run("/usr/bin/pluginkit", ["-m", "-v", "-i", "local.mdview.MDView.QuickLook"])
+    if listed.contains(path) { return }
+    _ = run("/usr/bin/pluginkit", ["-a", path])
+    _ = run("/usr/bin/qlmanage", ["-r"])
+    if ProcessInfo.processInfo.environment["MDVIEW_DEBUG"] == "1" {
+        FileHandle.standardError.write(Data("Quick-Look-Erweiterung angemeldet: \(path)\n".utf8))
+    }
+}
+
 final class AppDelegate: NSObject, NSApplicationDelegate {
     static let shared = AppDelegate()
 
@@ -330,6 +360,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         DispatchQueue.main.async { [self] in
             if !openedSomething { showOpenPanel(nil) }
         }
+        DispatchQueue.global(qos: .utility).async { registerQuickLookExtension() }
     }
 
     func application(_ application: NSApplication, open urls: [URL]) {
