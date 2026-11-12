@@ -57,6 +57,23 @@ Voraussetzungen: macOS 12 oder neuer und die Xcode Command Line Tools
 xcode-select --install
 ```
 
+### Mit Homebrew
+
+```bash
+brew install tissanr/tap/mdview
+```
+
+Homebrew baut MDView dabei aus dem Quellcode. Danach im Terminal `mdview datei.md`;
+damit die App auch im Finder, in Spotlight und bei „Öffnen mit“ erscheint, einmalig verlinken:
+
+```bash
+ln -sf "$(brew --prefix)/opt/mdview/MDView.app" ~/Applications/MDView.app
+```
+
+Falls Homebrew nach Vertrauen für das Tap fragt: `brew trust --tap tissanr/tap`.
+
+### Aus dem Quellcode
+
 ```bash
 git clone https://github.com/tissanr/MumMD.git
 ```
