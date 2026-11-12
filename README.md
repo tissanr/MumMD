@@ -40,7 +40,8 @@ Die Scrollposition bleibt dabei stehen.
 - **Live-Reload:** erkennt Änderungen sofort – auch beim „atomaren Speichern“, das
   viele Editoren nutzen (Datei wird ersetzt statt überschrieben).
 - **Scrollposition bleibt:** beim Neuladen werden nur geänderte Abschnitte ausgetauscht.
-- **GitHub-Flavored Markdown:** Tabellen, Task-Listen, Codeblöcke, Zitate, Bilder.
+- **GitHub-Flavored Markdown:** Tabellen, Task-Listen, Codeblöcke mit Syntax-Highlighting
+  (rund 35 gängige Sprachen), Zitate, Bilder.
 - **Hell & Dunkel:** folgt automatisch der macOS-Einstellung.
 - **Relative Links und Bilder** funktionieren (relativ zum Ordner der Datei);
   verlinkte `.md`-Dateien öffnen in MDView, Webseiten im Standardbrowser.
@@ -82,8 +83,9 @@ git clone https://github.com/tissanr/MumMD.git
 cd MumMD && ./build.sh
 ```
 
-`build.sh` lädt beim ersten Mal [marked.js](https://github.com/markedjs/marked) in einer
-festen Version (Prüfsumme wird kontrolliert), kompiliert die App und legt
+`build.sh` lädt beim ersten Mal [marked.js](https://github.com/markedjs/marked) und
+[highlight.js](https://highlightjs.org) in einer festen Version (Prüfsummen werden
+kontrolliert), kompiliert die App und legt
 `MDView.app` nach `~/Applications`.
 
 ### Als Standard-App für Markdown setzen
@@ -113,7 +115,7 @@ Das ganze Projekt besteht aus wenigen Dateien:
 | Datei           | Zweck |
 |-----------------|-------|
 | `main.swift`    | Die App: Fenster, Menüs, Dateiüberwachung, Öffnen per Finder/Dock/Drag & Drop |
-| `template.html` | Die Seite im Fenster; rendert Markdown mit marked.js und tauscht Inhalte aus |
+| `template.html` | Die Seite im Fenster; rendert Markdown mit marked.js, färbt Codeblöcke mit highlight.js und tauscht Inhalte aus |
 | `style.css`     | GitHub-ähnliches Layout, Hell/Dunkel, max. 900 px Textbreite |
 | `Info.plist`    | App-Beschreibung; meldet MDView bei macOS als Viewer für `.md`/`.markdown` an |
 | `icon.svg`      | Das App-Icon; wird beim Bauen in `AppIcon.icns` umgewandelt |
@@ -135,7 +137,7 @@ Bewusst weggelassen, um klein und schnell zu bleiben:
 
 - Bilder aus dem Internet (z. B. Badges) werden nicht geladen – das ist die Kehrseite von
   „keine Netzwerkzugriffe“. Erlauben lässt es sich in `template.html` (`img-src … https:`).
-- Kein Syntax-Highlighting in Codeblöcken, keine Mermaid-Diagramme, keine Formeln.
+- Keine Mermaid-Diagramme, keine Formeln. Codeblöcke ohne Sprachangabe bleiben ungefärbt.
 - Kein Bearbeiten – MDView ist ein reiner Viewer.
 - Noch keine Suche im Dokument (⌘F).
 - Die App wird nur lokal signiert. Auf dem eigenen Mac ist das kein Problem; wer die
@@ -159,5 +161,6 @@ Die Screenshots oben sind so entstanden, aus [`docs/demo.md`](docs/demo.md).
 
 ## Lizenz
 
-[GPL-3.0](LICENSE). Enthält [marked](https://github.com/markedjs/marked) (MIT-Lizenz),
-das beim Bauen geladen wird.
+[GPL-3.0](LICENSE). Enthält [marked](https://github.com/markedjs/marked) (MIT-Lizenz)
+und [highlight.js](https://github.com/highlightjs/highlight.js) (BSD-3-Clause), die beim
+Bauen geladen werden.

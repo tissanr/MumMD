@@ -1,6 +1,7 @@
 #!/bin/bash
 # Baut MDView.app nur mit swiftc und installiert es nach ~/Applications (oder $DEST).
 #   MARKED_JS=<pfad>  vorhandene marked.min.js nutzen statt sie zu laden (z. B. für Homebrew, ohne Netz)
+#   HLJS_JS=<pfad>    vorhandene highlight.min.js (Common-Bundle) nutzen statt sie zu laden
 #   NO_INSTALL=1      nur nach build/MDView.app bauen, nichts installieren
 set -euo pipefail
 cd "$(dirname "$0")"
@@ -8,12 +9,15 @@ cd "$(dirname "$0")"
 APP_NAME=MDView
 MARKED_VERSION=15.0.12
 MARKED_SHA256=3e7e7d7feb3e5d58cb6c804f68ab5c24cc7e5eb6270fd6e5cbb9124739217d0c
+HLJS_VERSION=11.11.1
+HLJS_SHA256=c4a399dd6f488bc97a3546e3476747b3e714c99c57b9473154c6fb8d259b9381
 MIN_MACOS=12.0
 DEST="${DEST:-$HOME/Applications}"
 
 BUILD=build
 APP="$BUILD/$APP_NAME.app"
 MARKED="${MARKED_JS:-$BUILD/vendor/marked-$MARKED_VERSION.min.js}"
+HLJS="${HLJS_JS:-$BUILD/vendor/highlight-$HLJS_VERSION.min.js}"
 mkdir -p "$BUILD"
 
 # marked.js einmalig laden (gecacht in build/vendor) und Prüfsumme verifizieren.
@@ -24,6 +28,15 @@ if [[ ! -f "$MARKED" ]]; then
     mv "$MARKED.tmp" "$MARKED"
 fi
 echo "$MARKED_SHA256  $MARKED" | shasum -a 256 -c --quiet - || { echo "Prüfsumme von $MARKED falsch" >&2; [[ -z "${MARKED_JS:-}" ]] && rm -f "$MARKED"; exit 1; }
+
+# highlight.js (Common-Bundle, ~35 Sprachen) für Syntax-Highlighting in Codeblöcken, ebenso gecacht.
+if [[ ! -f "$HLJS" ]]; then
+    echo "→ Lade highlight.js $HLJS_VERSION"
+    mkdir -p "$BUILD/vendor"
+    curl -fsSL "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@$HLJS_VERSION/build/highlight.min.js" -o "$HLJS.tmp"
+    mv "$HLJS.tmp" "$HLJS"
+fi
+echo "$HLJS_SHA256  $HLJS" | shasum -a 256 -c --quiet - || { echo "Prüfsumme von $HLJS falsch" >&2; [[ -z "${HLJS_JS:-}" ]] && rm -f "$HLJS"; exit 1; }
 
 # App-Icon aus icon.svg erzeugen (nur wenn sich das SVG geändert hat).
 ICNS="$BUILD/AppIcon.icns"
@@ -68,6 +81,7 @@ swiftc -O -swift-version 5 \
 cp Info.plist "$APP/Contents/Info.plist"
 cp template.html style.css "$APP/Contents/Resources/"
 cp "$MARKED" "$APP/Contents/Resources/marked.min.js"
+cp "$HLJS" "$APP/Contents/Resources/highlight.min.js"
 cp "$ICNS" "$APP/Contents/Resources/AppIcon.icns"
 codesign --force --sign - "$APP" >/dev/null
 

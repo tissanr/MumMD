@@ -8,6 +8,7 @@
 <meta name="color-scheme" content="light dark">
 <link rel="stylesheet" href="style.css">
 <script nonce="mdview" src="marked.min.js"></script>
+<script nonce="mdview" src="highlight.min.js"></script>
 <base>
 </head>
 <body>
@@ -34,6 +35,17 @@
     }
   }
 
+  // Syntax-Highlighting nur für Blöcke mit bekannter Sprachangabe (```python);
+  // ohne Angabe bleibt der Block neutral, weil die Autoerkennung oft danebenliegt.
+  function highlightCode(root) {
+    if (!window.hljs) return;
+    for (const code of root.querySelectorAll('pre > code[class*="language-"]')) {
+      const lang = code.className.match(/language-(\S+)/)[1];
+      if (!hljs.getLanguage(lang)) continue;
+      try { hljs.highlightElement(code); } catch (_) { /* Block bleibt unformatiert */ }
+    }
+  }
+
   // Nur geänderte Top-Level-Knoten austauschen: Scrollposition und geladene Bilder bleiben erhalten.
   function patch(container, fragment) {
     const next = [...fragment.childNodes];
@@ -57,6 +69,7 @@
     const tpl = document.createElement('template');
     tpl.innerHTML = marked.parse(stripFrontMatter(md));
     addHeadingIds(tpl.content);
+    highlightCode(tpl.content);  // vor patch(), damit unveränderte Blöcke gleich bleiben
     const { changed } = patch(content, tpl.content);
     window.scrollTo(0, y);
     return { changed, scrollY: Math.round(window.scrollY), text: content.innerText.slice(0, 80) };
