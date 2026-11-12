@@ -312,6 +312,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationWillFinishLaunching(_ notification: Notification) {
         NSApp.mainMenu = buildMainMenu()
+        // Testhilfe: MDVIEW_DEBUG_APPEARANCE=dark|light erzwingt ein Erscheinungsbild.
+        switch ProcessInfo.processInfo.environment["MDVIEW_DEBUG_APPEARANCE"] {
+        case "dark": NSApp.appearance = NSAppearance(named: .darkAqua)
+        case "light": NSApp.appearance = NSAppearance(named: .aqua)
+        default: break
+        }
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
