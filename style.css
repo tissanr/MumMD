@@ -1,0 +1,153 @@
+/* GitHub-artiges Markdown-Styling, folgt automatisch Hell/Dunkel des Systems. */
+:root {
+  color-scheme: light dark;
+  --font-size: 16px;
+  --fg: #1f2328;
+  --fg-muted: #59636e;
+  --bg: #ffffff;
+  --bg-muted: #f6f8fa;
+  --bg-code: rgba(129, 139, 152, 0.12);
+  --border: #d1d9e0;
+  --border-muted: #d1d9e0b3;
+  --link: #0969da;
+  --mark: #fff8c5;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --fg: #f0f6fc;
+    --fg-muted: #9198a1;
+    --bg: #0d1117;
+    --bg-muted: #151b23;
+    --bg-code: rgba(101, 108, 118, 0.2);
+    --border: #3d444d;
+    --border-muted: #3d444db3;
+    --link: #4493f8;
+    --mark: rgba(187, 128, 9, 0.4);
+  }
+}
+
+html { background: var(--bg); }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: var(--font-size)/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  word-wrap: break-word;
+}
+.markdown-body {
+  box-sizing: border-box;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 32px 40px 64px;
+}
+.markdown-body > *:first-child { margin-top: 0 !important; }
+.markdown-body > *:last-child { margin-bottom: 0 !important; }
+
+p, blockquote, ul, ol, dl, table, pre, details { margin: 0 0 16px; }
+
+h1, h2, h3, h4, h5, h6 {
+  margin: 24px 0 16px;
+  font-weight: 600;
+  line-height: 1.25;
+  scroll-margin-top: 16px;
+}
+h1 { font-size: 2em; padding-bottom: .3em; border-bottom: 1px solid var(--border-muted); }
+h2 { font-size: 1.5em; padding-bottom: .3em; border-bottom: 1px solid var(--border-muted); }
+h3 { font-size: 1.25em; }
+h4 { font-size: 1em; }
+h5 { font-size: .875em; }
+h6 { font-size: .85em; color: var(--fg-muted); }
+
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+strong { font-weight: 600; }
+mark { background: var(--mark); color: inherit; }
+
+hr {
+  height: .25em;
+  margin: 24px 0;
+  padding: 0;
+  border: 0;
+  background: var(--border);
+}
+
+blockquote {
+  margin-left: 0;
+  margin-right: 0;
+  padding: 0 1em;
+  color: var(--fg-muted);
+  border-left: .25em solid var(--border);
+}
+blockquote > :first-child { margin-top: 0; }
+blockquote > :last-child { margin-bottom: 0; }
+
+ul, ol { padding-left: 2em; }
+ul ul, ul ol, ol ol, ol ul { margin-top: 0; margin-bottom: 0; }
+li + li { margin-top: .25em; }
+li > p { margin-top: 16px; }
+
+/* Task-Listen */
+li:has(> input[type="checkbox"]),
+li:has(> p > input[type="checkbox"]) { list-style: none; }
+li > input[type="checkbox"],
+li > p > input[type="checkbox"] { margin: 0 .2em .25em -1.4em; vertical-align: middle; }
+
+code, kbd, pre, samp {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 85%;
+}
+code {
+  padding: .2em .4em;
+  margin: 0;
+  white-space: break-spaces;
+  background: var(--bg-code);
+  border-radius: 6px;
+}
+pre {
+  padding: 16px;
+  overflow: auto;
+  line-height: 1.45;
+  background: var(--bg-muted);
+  border-radius: 6px;
+}
+pre code {
+  display: inline;
+  padding: 0;
+  font-size: 100%;
+  white-space: pre;
+  background: transparent;
+  border: 0;
+}
+kbd {
+  display: inline-block;
+  padding: 3px 5px;
+  font-size: 11px;
+  line-height: 10px;
+  vertical-align: middle;
+  background: var(--bg-muted);
+  border: 1px solid var(--border);
+  border-bottom-width: 2px;
+  border-radius: 6px;
+}
+
+table {
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  overflow: auto;
+  border-spacing: 0;
+  border-collapse: collapse;
+}
+th { font-weight: 600; }
+th, td { padding: 6px 13px; border: 1px solid var(--border); }
+tr { background: var(--bg); border-top: 1px solid var(--border-muted); }
+tr:nth-child(2n) { background: var(--bg-muted); }
+
+img { max-width: 100%; box-sizing: content-box; background: transparent; }
+
+details summary { cursor: pointer; }
+dl dt { font-weight: 600; font-style: italic; margin-top: 16px; }
+dl dd { margin: 0 0 16px; padding: 0 16px; }
+
+::selection { background: rgba(84, 174, 255, .4); }
