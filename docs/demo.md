@@ -22,6 +22,9 @@ der gerade an der Doku schreibt.
 > Tipp: Mit ⌘+ und ⌘− lässt sich die Schriftgröße anpassen.
 
 ```swift
-let viewer = MDView()
-viewer.open("README.md")   // lädt neu, sobald sich die Datei ändert
+// Öffnet eine Datei und lädt neu, sobald sie sich ändert
+func show(_ path: String, fontSize: Double = 16) {
+    let viewer = MDView(fontSize: fontSize)
+    viewer.open(path, liveReload: true)
+}
 ```
