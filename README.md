@@ -64,12 +64,13 @@ xcode-select --install
 brew install tissanr/tap/mdview
 ```
 
-Homebrew baut MDView dabei aus dem Quellcode. Danach im Terminal `mdview datei.md`;
-damit die App auch im Finder, in Spotlight und bei „Öffnen mit“ erscheint, einmalig verlinken:
+Homebrew baut MDView dabei aus dem Quellcode. Danach im Terminal `mdview datei.md`.
+Beim ersten Aufruf verlinkt `mdview` die App automatisch nach `~/Applications`, damit sie
+auch im Finder, in Spotlight und bei „Öffnen mit“ erscheint. Wer das sofort möchte, ruft
+einmal `mdview` ohne Datei auf.
 
-```bash
-ln -sf "$(brew --prefix)/opt/mdview/MDView.app" ~/Applications/MDView.app
-```
+(Während `brew install` selbst geht das nicht: Homebrew installiert in einer Sandbox,
+die keine Schreibzugriffe ins Home-Verzeichnis erlaubt.)
 
 Falls Homebrew nach Vertrauen für das Tap fragt: `brew trust --tap tissanr/tap`.
 
