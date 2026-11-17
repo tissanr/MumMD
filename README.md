@@ -91,6 +91,36 @@ cd MumMD && ./build.sh
 kontrolliert), kompiliert die App und legt
 `MDView.app` nach `~/Applications`.
 
+### Als DMG weitergeben
+
+Wer MDView jemandem ohne Entwicklerwerkzeuge geben möchte, baut ein Disk-Image:
+
+```bash
+./make-dmg.sh
+```
+
+Das ergibt `build/MDView-<version>.dmg` (unter 1 MB) mit einer Universal-App
+(Apple Silicon und Intel), einer Verknüpfung zum Programme-Ordner und einer kurzen
+Anleitung „Erst lesen.txt“. Der Empfänger zieht MDView auf „Programme“ – fertig.
+
+Ohne Apple-Developer-ID ist die App nur ad hoc signiert. macOS blockiert dann den ersten
+Start; ab macOS 15 gibt man sie unter **Systemeinstellungen → Datenschutz & Sicherheit →
+„Dennoch öffnen“** frei, bei älteren Versionen per Rechtsklick → „Öffnen“. Die Anleitung
+im DMG beschreibt das.
+
+Mit einer Developer-ID (kostenpflichtiges Apple-Developer-Konto) entfällt das:
+
+```bash
+xcrun notarytool store-credentials mdview-notary
+```
+
+```bash
+SIGN_IDENTITY="Developer ID Application: Name (TEAMID)" NOTARY_PROFILE=mdview-notary ./make-dmg.sh
+```
+
+Das Skript signiert dann mit Hardened Runtime, lässt das DMG von Apple notarisieren und
+heftet das Ticket an.
+
 ### Als Standard-App für Markdown setzen
 
 1. Im Finder eine `.md`-Datei auswählen und **⌘I** drücken (Informationen).
@@ -124,6 +154,7 @@ Das ganze Projekt besteht aus wenigen Dateien:
 | `Info.plist`    | App-Beschreibung; meldet MDView bei macOS als Viewer für `.md`/`.markdown` an |
 | `icon.svg`      | Das App-Icon; wird beim Bauen in `AppIcon.icns` umgewandelt |
 | `build.sh`      | Baut alles nur mit `swiftc` – kein Xcode-Projekt |
+| `make-dmg.sh`   | Baut eine Universal-App und verpackt sie als DMG zum Weitergeben |
 
 Ein paar Details:
 
@@ -148,8 +179,8 @@ Bewusst weggelassen, um klein und schnell zu bleiben:
 - Keine Mermaid-Diagramme, keine Formeln. Codeblöcke ohne Sprachangabe bleiben ungefärbt.
 - Kein Bearbeiten – MDView ist ein reiner Viewer.
 - Noch keine Suche im Dokument (⌘F).
-- Die App wird nur lokal signiert. Auf dem eigenen Mac ist das kein Problem; wer die
-  fertige App weitergibt, muss sie dort beim ersten Start per Rechtsklick → „Öffnen“ starten.
+- Die App wird standardmäßig nur ad hoc signiert. Auf dem eigenen Mac ist das kein Problem;
+  wer sie weitergibt, siehe [Als DMG weitergeben](#als-dmg-weitergeben).
 
 ## Entwicklung
 
