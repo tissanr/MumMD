@@ -3,6 +3,8 @@
 #   MARKED_JS=<pfad>  vorhandene marked.min.js nutzen statt sie zu laden (z. B. für Homebrew, ohne Netz)
 #   HLJS_JS=<pfad>    vorhandene highlight.min.js (Common-Bundle) nutzen statt sie zu laden
 #   NO_INSTALL=1      nur nach build/MDView.app bauen, nichts installieren
+#   UNIVERSAL=1       Universal-Binary für Apple Silicon und Intel bauen (für die Weitergabe, siehe make-dmg.sh)
+#   SIGN_IDENTITY=…   mit diesem Zertifikat signieren (z. B. "Developer ID Application: …") statt ad hoc
 set -euo pipefail
 cd "$(dirname "$0")"
 
@@ -70,13 +72,32 @@ SWIFT
     iconutil -c icns "$BUILD/AppIcon.iconset" -o "$ICNS"
 fi
 
-echo "→ Kompiliere"
+# Zielarchitekturen: standardmäßig nur die des eigenen Macs, mit UNIVERSAL=1 beide.
+if [[ "${UNIVERSAL:-}" == 1 ]]; then ARCHS=(arm64 x86_64); else ARCHS=("$(uname -m)"); fi
+
+# compile <ausgabe> <swiftc-argumente…>: kompiliert für alle ARCHS und fügt sie per lipo zusammen.
+compile() {
+    local out="$1"; shift
+    local slices=()
+    for arch in "${ARCHS[@]}"; do
+        swiftc -O -swift-version 5 -target "$arch-apple-macos$MIN_MACOS" "$@" -o "$out.$arch"
+        slices+=("$out.$arch")
+    done
+    lipo -create "${slices[@]}" -output "$out"
+    rm -f "${slices[@]}"
+}
+
+# Signatur: ad hoc (nur lokal vertrauenswürdig) oder mit echtem Zertifikat inkl. Hardened Runtime,
+# was für die Notarisierung durch Apple nötig ist.
+SIGN_ARGS=(--force --sign -)
+if [[ -n "${SIGN_IDENTITY:-}" ]]; then
+    SIGN_ARGS=(--force --sign "$SIGN_IDENTITY" --options runtime --timestamp)
+fi
+
+echo "→ Kompiliere (${ARCHS[*]})"
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
-swiftc -O -swift-version 5 \
-    -target "$(uname -m)-apple-macos$MIN_MACOS" \
-    -framework AppKit -framework WebKit \
-    main.swift -o "$APP/Contents/MacOS/$APP_NAME"
+compile "$APP/Contents/MacOS/$APP_NAME" -framework AppKit -framework WebKit main.swift
 
 cp Info.plist "$APP/Contents/Info.plist"
 cp template.html style.css "$APP/Contents/Resources/"
@@ -88,19 +109,18 @@ cp "$ICNS" "$APP/Contents/Resources/AppIcon.icns"
 echo "→ Kompiliere Quick-Look-Erweiterung"
 APPEX="$APP/Contents/PlugIns/MDViewQuickLook.appex"
 mkdir -p "$APPEX/Contents/MacOS" "$APPEX/Contents/Resources"
-swiftc -O -swift-version 5 -application-extension \
-    -target "$(uname -m)-apple-macos$MIN_MACOS" \
+compile "$APPEX/Contents/MacOS/MDViewQuickLook" -application-extension \
     -module-name MDViewQuickLook \
     -framework QuickLookUI -framework JavaScriptCore \
     -Xlinker -e -Xlinker _NSExtensionMain \
-    quicklook/PreviewProvider.swift -o "$APPEX/Contents/MacOS/MDViewQuickLook"
+    quicklook/PreviewProvider.swift
 cp quicklook/Info.plist "$APPEX/Contents/Info.plist"
 cp style.css "$APPEX/Contents/Resources/"
 cp "$MARKED" "$APPEX/Contents/Resources/marked.min.js"
 cp "$HLJS" "$APPEX/Contents/Resources/highlight.min.js"
-codesign --force --sign - --entitlements quicklook/QuickLook.entitlements "$APPEX" >/dev/null
+codesign "${SIGN_ARGS[@]}" --entitlements quicklook/QuickLook.entitlements "$APPEX" >/dev/null
 
-codesign --force --sign - "$APP" >/dev/null
+codesign "${SIGN_ARGS[@]}" "$APP" >/dev/null
 
 if [[ "${NO_INSTALL:-}" == 1 ]]; then
     echo "✓ $APP"
