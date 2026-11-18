@@ -60,7 +60,6 @@ body {
 }
 .markdown-body {
   box-sizing: border-box;
-  max-width: 900px;
   margin: 0 auto;
   padding: 32px 40px 64px;
 }
